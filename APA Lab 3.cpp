@@ -1,54 +1,53 @@
-﻿#include <iostream>
+#include <iostream>
 #include <time.h>
 #include <chrono>
-
 
 using namespace std;
 
 class List
 {
 private:
-    long int* lista = nullptr;
-    int marime = 0;
-    void afisareIntern( int * arr,int marime)
+    int* list = nullptr;
+    int length = 0;
+    static void afisareIntern(int* arr, int length)
     {
         cout << endl;
-        for (int i = 0; i < marime; i++)
+        for (int i = 0; i < length; i++)
         {
             cout << arr[i] << endl;
         }
     }
-    void merge( int * arr,int s,int m,int d)
+    static void merge(int* arr, int start, int medium, int end)
     {
-        int n1 = m - s + 1;
-        int n2 = d - m;
+        int n1 = medium - start + 1;
+        int n2 = end - medium;
 
-        long int* S = new long int[n1];
-        long int* D = new long int[n2];
+        long int* leftArr = new long int[n1];
+        long int* rightArr = new long int[n2];
 
-        for (int i = 0; i < n1; i++) 
+        for (int i = 0; i < n1; i++)
         {
-            S[i] = arr[s + i];
+            leftArr[i] = arr[start + i];
         };
         for (int j = 0; j < n2; j++)
         {
-            D[j] = arr[m + 1 + j];
+            rightArr[j] = arr[medium + 1 + j];
         };
 
         int i = 0;
         int j = 0;
-        int k = s;
+        int k = start;
 
-        while(i < n1&& j < n2)
+        while (i < n1 && j < n2)
         {
-            if (S[i] <= D[j])
+            if (leftArr[i] <= rightArr[j])
             {
-                arr[k] = S[i];
+                arr[k] = leftArr[i];
                 i++;
             }
             else
             {
-                arr[k] = D[j];
+                arr[k] = rightArr[j];
                 j++;
             }
             k++;
@@ -56,42 +55,41 @@ private:
 
         while (i < n1)
         {
-            arr[k] = S[i];
+            arr[k] = leftArr[i];
             i++;
             k++;
         }
 
         while (j < n2)
         {
-            arr[k] = D[j];
+            arr[k] = rightArr[j];
             j++;
             k++;
         }
 
-        delete[] S;
-        delete[] D;
+        delete[] leftArr;
+        delete[] rightArr;
 
     }
-    void mergeImp( int * arr,int s, int d)
+    static void mergeImp(int* arr, int start, int end)
     {
-        
-        if (s < d)
+        if (start < end)
         {
-            int m = s + (d - s) / 2;
-            mergeImp(arr,s,m);
-            mergeImp(arr,m+1,d);
+            int medium = start + (end - start) / 2;
+            mergeImp(arr, start, medium);
+            mergeImp(arr, medium + 1, end);
 
-            merge(arr,s,m,d);
+            merge(arr, start, medium, end);
 
         }
     }
-    int partial(int* arr, int s, int d)
+    static int partial(int* arr, int start, int end)
     {
-        int pivot = arr[d];
+        int pivot = arr[end];
 
-        int i = s;
+        int i = start;
 
-        for (int j = s; j < d; j++)
+        for (int j = start; j < end; j++)
         {
             if (arr[j] < pivot)
             {
@@ -102,23 +100,45 @@ private:
             };
         }
         int c = arr[i];
-        arr[i] = arr[d];
-        arr[d] = c;
+        arr[i] = arr[end];
+        arr[end] = c;
 
         return i;
     }
-    void quick(int* arr, int s, int d)
+    static void quick(int* arr, int start, int end)
     {
-        if (s < d)
+        if (start < end)
         {
-            int part = partial(arr, s, d);
+            int part = partial(arr, start, end);
 
-            quick(arr, s, part - 1);
-            quick(arr, part + 1, d);
+            quick(arr, start, part - 1);
+            quick(arr, part + 1, end);
         }
     }
-    void shell(int * arr, int n)
+    static int partialRand(int* arr, int start, int end)
     {
+
+        if (start - end != 0) {
+            int random = start + rand() % (end - start);
+            int c = arr[random];
+            arr[random] = arr[end];
+            arr[end] = c;
+        }
+        
+        return partial(arr,start,end);
+    }
+    static void quickRand(int* arr, int start, int end)
+    {
+        if (start < end)
+        {
+            int part = partialRand(arr, start, end);
+            quickRand(arr, start, part - 1);
+            quickRand(arr, part + 1, end);
+        }
+    }
+    static void shell(int* arr, int start, int end)
+    {
+        int n = end - start+1;
         for (int gap = n / 2; gap > 0; gap /= 2)
         {
             for (int i = gap; i < n; i += 1)
@@ -128,104 +148,183 @@ private:
                 for (j = i; j >= gap && arr[j - gap] > temp; j -= gap)
                 {
                     arr[j] = arr[j - gap];
-                   
+
                 };
                 arr[j] = temp;
             }
         }
     }
-public:
-    List(int marime)
+    int* copy()
     {
-        this->marime = marime;
-        lista = new long int[marime];
-        for (int i = 0; i < marime; i++)
+        int* list1 = new int[length];
+        for (int i = 0; i < length; i++)
+        {
+            list1[i] = list[i];
+        }
+        return list1;
+    }
+    void time(void(*function)(int*, int, int), int* arr,int length, string sortType)
+    {
+        auto start = chrono::high_resolution_clock::now();
+        function(arr, 0, length-1);
+        auto stop = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
+        cout << "Durata " << sortType << " : " << duration.count() << " microsecunde" << endl;
+    }
+    void genRand(int * arr, int length, int range)
+    {
+
+        for (int i = 0; i < length; i++)
         {
             int sign = 1;
             if (rand() % 3 == 0)
             {
                 sign = -1;
             }
-            lista[i] = (rand() % 100000) * sign;
+            arr[i] = (rand() % range) * sign;
         }
+    }
+    void genDescending(int* arr, int length, int range)
+    {
+        float max = range;
+        float step = (rand()%10);
+        for (int i = 0; i < length; i++)
+        {
+            arr[i] = max;
+            max -= step;
+        }
+    }
+    void genAscending(int* arr, int length, int range)
+    {
+        int sign = 1;
+        if (rand() % 2 == 0)
+        {
+            sign = -1;
+        }
+        float min = 1 * (rand() % 25)*sign;
+        float step = ( rand() % 10);
+        for (int i = 0; i < length; i++)
+        {
+            arr[i] = min;
+            min += step;
+        }
+    }
+    void genAlmostAscending(int* arr, int length, int range)
+    {
+        int sign = 1;
+        if (rand() % 2 == 0)
+        {
+            sign = -1;
+        }
+        float min = 1 * (rand() % 25) * sign;
+        float step =(rand() % 10);
+        for (int i = 0; i < length; i++)
+        {
+            arr[i] = min;
+            min += step;
+        }
+        int randN1 = rand() % (length/2-1);
+        int randN2 = rand() % (length / 2 - 1);
+        int c = arr[length / 2 + randN1];
+        arr[length / 2 + randN1] = arr[length / 2 - randN2];
+        arr[length / 2 - randN2] = c;
+    }
+public:
+    List(int length, int range,int mode)
+    {
+        this->length = length;
+        list = new int[length];
+        switch (mode)
+        {
+        case 0:
+            {
+            genRand(list,length,range);
+            }
+            break;
+        case 1:
+        {
+            genDescending(list, length, range);
+        }
+        break;
+        case 2:
+        {
+            genAscending(list, length, range);
+        }
+        break;
+        case 3:
+        {
+            genAlmostAscending(list, length, range);
+        }
+        break;
+        default:
+            break;
+        }
+        
     }
     void afisare()
     {
         cout << endl;
-        for (int i = 0; i < marime; i++)
+        for (int i = 0; i < length; i++)
         {
-            cout  << lista[i] << endl;
+            cout << list[i] << endl;
         }
     }
     void sortareMerge()
     {
-        int* lista1 = new int[marime];
-        for (int i = 0; i < marime; i++)
-        {
-            lista1[i] =lista[i];
-        }
-        auto start = chrono::high_resolution_clock::now();
-        mergeImp(lista1,0,marime-1);
-        auto stop = chrono::high_resolution_clock::now();
-        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "Durata MergeSort: " << duration.count() << " microsecunde" << endl;
+        int* list1 = copy();
+        time(&mergeImp, list1, length, "Merge Sort");
 
-        //mergeImp(lista1, 0, marime - 1);
-        //cout << endl << "Rezultatele pentru Merge Sort: ";
-        //afisareIntern(lista1, marime);
+        //afisareIntern(list1, length);
 
-        delete[] lista1;
+        delete[] list1;
 
     }
     void sortareQuick()
     {
-        int* lista1 = new int[marime];
-        for (int i = 0; i < marime; i++)
-        {
-            lista1[i] = lista[i];
-        }
-        auto start = chrono::high_resolution_clock::now();
-        quick(lista1,0,marime-1);
-        auto stop = chrono::high_resolution_clock::now();
-        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "Durata QuickSort: "<<duration.count() <<" microsecunde"<< endl;
+        int* list1 = copy();
+        time(&quick, list1, length, "Quick Sort");
 
-        //quick(lista1, 0, marime - 1);
-        //cout << endl << "Rezultatele pentru Quick Sort: ";
-        //afisareIntern(lista1, marime);
+        //afisareIntern(list1, length);
+        
+        delete[] list1;
+    }
+    void sortareRandQuick()
+    {
+        int* list1 = copy();
+        time(&quickRand, list1, length, "Random Quick Sort");
 
-        delete[] lista1;
+        //afisareIntern(list1, length);
+
+        delete[] list1;
     }
     void sortareShell()
     {
-        int* lista1 = new int[marime];
-        for (int i = 0; i < marime; i++)
-        {
-            lista1[i] = lista[i];
-        }
-        auto start = chrono::high_resolution_clock::now();
-        shell(lista1,marime);
-        auto stop = chrono::high_resolution_clock::now();
-        auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-        cout << "Durata ShellSort: " << duration.count() << " microsecunde" << endl;
-        
-        //shell(lista1, marime);
-        //cout << endl << "Rezultatele pentru Shell Sort: ";
-        //afisareIntern(lista1, marime);
+        int* list1 = copy();
+        time(&shell, list1, length, "Shell Sort");
 
-        delete[] lista1;
+        //afisareIntern(list1, length);
+
+        delete[] list1;
     }
 };
 
 int main()
 {
     srand(time(0));
-    int n;
+    cout << endl << "Give how many random numbers you woud like: ";
+    int n=10;
     cin >> n;
-    List* lista = new List(n);
-    cout << endl << "N= " << n<<endl;
+    cout << endl << "Give the biggest number you woud like: ";
+    int range=20;
+    cin >> range;
+    cout << endl << "Give mode of generation (0-random; 1-descending; 2-ascending; 3-almost ascending): ";
+    int mode=0;
+    cin >> mode;
+    List* lista = new List(n,range,mode);
+    cout << endl << "N= " << n<<" range = "<<range << endl;
     //lista->afisare();
     lista->sortareMerge();
-    lista->sortareQuick();
+    //lista->sortareQuick();
+    lista->sortareRandQuick();
     lista->sortareShell();
 }
