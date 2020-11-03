@@ -274,7 +274,7 @@ public:
         int* list1 = copy();
         time(&mergeImp, list1, length, "Merge Sort");
 
-        //afisareIntern(list1, length);
+        afisareIntern(list1, length);
 
         delete[] list1;
 
@@ -284,7 +284,7 @@ public:
         int* list1 = copy();
         time(&quick, list1, length, "Quick Sort");
 
-        //afisareIntern(list1, length);
+        afisareIntern(list1, length);
         
         delete[] list1;
     }
@@ -293,7 +293,7 @@ public:
         int* list1 = copy();
         time(&quickRand, list1, length, "Random Quick Sort");
 
-        //afisareIntern(list1, length);
+        afisareIntern(list1, length);
 
         delete[] list1;
     }
@@ -302,7 +302,7 @@ public:
         int* list1 = copy();
         time(&shell, list1, length, "Shell Sort");
 
-        //afisareIntern(list1, length);
+        afisareIntern(list1, length);
 
         delete[] list1;
     }
@@ -322,9 +322,9 @@ int main()
     cin >> mode;
     List* lista = new List(n,range,mode);
     cout << endl << "N= " << n<<" range = "<<range << endl;
-    //lista->afisare();
+    lista->afisare();
     lista->sortareMerge();
-    //lista->sortareQuick();
+    lista->sortareQuick();
     lista->sortareRandQuick();
     lista->sortareShell();
 }
